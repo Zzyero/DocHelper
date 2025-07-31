@@ -19,14 +19,14 @@ tiktoken==0.5.2
 
 # 数据处理
 pandas==2.1.4
-numpy==1.25.2
+numpy==1.26.0
 
 # 文件处理
 Pillow==10.1.0
 openpyxl==3.1.2
 
 # 数据库
-sqlite3  # Python 内置
+# sqlite3 (内置模块，无需安装)  # Python 内置
 sqlalchemy==2.0.23
 alembic==1.13.1
 
