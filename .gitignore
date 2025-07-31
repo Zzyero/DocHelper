@@ -1,0 +1,2 @@
+# 忽略 Node.js 依赖
+node_modules/

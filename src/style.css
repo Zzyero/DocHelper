@@ -1,0 +1,229 @@
+/* Windows 11 风格的全局样式 */
+:root {
+  /* Windows 11 颜色系统 */
+  --color-primary: #0078d4;
+  --color-primary-hover: #106ebe;
+  --color-primary-active: #005a9e;
+  --color-secondary: #6b7280;
+  --color-success: #107c10;
+  --color-warning: #ff8c00;
+  --color-danger: #d13438;
+  
+  /* 背景色 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9f9f9;
+  --color-bg-tertiary: #f3f3f3;
+  --color-bg-quaternary: #ebebeb;
+  
+  /* 文字颜色 */
+  --color-text-primary: #323130;
+  --color-text-secondary: #605e5c;
+  --color-text-tertiary: #8a8886;
+  --color-text-disabled: #a19f9d;
+  
+  /* 边框颜色 */
+  --color-border-light: #e1dfdd;
+  --color-border-medium: #d2d0ce;
+  --color-border-strong: #8a8886;
+  
+  /* 阴影 */
+  --shadow-light: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  
+  /* 圆角 */
+  --radius-small: 4px;
+  --radius-medium: 6px;
+  --radius-large: 8px;
+  --radius-card: 12px;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* Element Plus 组件样式覆盖 */
+.el-card {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  background-color: var(--color-bg-primary);
+}
+
+.el-button {
+  border-radius: var(--radius-medium);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.el-button--primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.el-button--primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.el-button--primary:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+.el-input__wrapper {
+  border-radius: var(--radius-medium);
+  box-shadow: none;
+  border: 1px solid var(--color-border-light);
+}
+
+.el-input__wrapper:hover {
+  border-color: var(--color-border-medium);
+}
+
+.el-input__wrapper.is-focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.1);
+}
+
+.el-select .el-input__wrapper {
+  border-radius: var(--radius-medium);
+}
+
+.el-menu {
+  border-right: none;
+  background-color: var(--color-bg-primary);
+}
+
+.el-menu-item {
+  border-radius: var(--radius-medium);
+  margin: 2px 8px;
+  height: 40px;
+  line-height: 40px;
+}
+
+.el-menu-item:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.el-menu-item.is-active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* 自定义工具类 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fluent-card {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-light);
+  transition: all 0.2s ease;
+}
+
+.fluent-card:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.border-light {
+  border: 1px solid var(--color-border-light);
+}
+
+.rounded-card {
+  border-radius: var(--radius-card);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+/* 动画效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+}
