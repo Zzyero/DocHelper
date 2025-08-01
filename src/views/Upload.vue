@@ -34,6 +34,18 @@
         </div>
       </el-card>
     </div>
+    <!-- 解压加载指示器 -->
+    <div v-if="isExtracting" class="extracting-indicator">
+      <el-card>
+        <div class="extracting-content">
+          <div class="loading-overlay">
+            <el-icon class="is-loading" size="48" color="#409eff"><Loading /></el-icon>
+            <h3>正在解压文件中...</h3>
+            <p>请稍候，系统正在处理您的文件</p>
+          </div>
+        </div>
+      </el-card>
+    </div>
 
 
     <!-- 操作按钮 -->
@@ -120,6 +132,7 @@ const previewFile = ref(null)
 const previewContent = ref('')
 const currentStep = ref(1) // 1: 上传, 2: 解压完成
 const extractedFiles = ref([])
+const isExtracting = ref(false) // 解压状态
 
 // 计算属性
 const hasFiles = computed(() => uploadedFiles.value.length > 0)
@@ -211,6 +224,9 @@ const addFiles = async (files) => {
 }
 
 const extractArchive = async (fileObj) => {
+  // 设置解压状态为true
+  isExtracting.value = true;
+  
   try {
     // 需要重新获取原始的File对象
     const input = document.createElement('input');
@@ -263,6 +279,9 @@ const extractArchive = async (fileObj) => {
     console.error('解压失败:', error);
     ElMessage.error(`解压失败: ${error.message}`);
     uploadedFiles.value = []; // 清空无效的压缩包
+  } finally {
+    // 无论成功还是失败，都将解压状态设置为false
+    isExtracting.value = false;
   }
 }
 
@@ -552,6 +571,49 @@ onMounted(() => {
   
   .file-name {
     margin-right: 0;
+  }
+}
+
+.extracting-indicator {
+  margin-bottom: var(--spacing-xl);
+}
+
+.extracting-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay h3 {
+  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+  color: var(--color-text-primary);
+}
+
+.loading-overlay p {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.is-loading {
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
