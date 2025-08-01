@@ -2,7 +2,7 @@
   <div class="upload-container">
     <div class="page-header">
       <h1>文件上传</h1>
-      <p>上传实验相关文件，包括代码包、实验指导书、结果图片等</p>
+      <p>请上传压缩文档（.zip, .rar），系统将自动解压获取实验文件。仅支持ZIP/RAR格式。</p>
     </div>
 
     <!-- 上传区域 -->
@@ -28,60 +28,12 @@
           <div class="upload-content">
             <el-icon size="48" color="#8a8886"><Upload /></el-icon>
             <h3>拖拽文件到此处，或点击选择文件</h3>
-            <p>支持多种格式：代码文件、文档、图片等</p>
-            <div class="supported-formats">
-              <el-tag size="small">代码包 (.zip, .rar)</el-tag>
-              <el-tag size="small">文档 (.pdf, .doc, .docx)</el-tag>
-              <el-tag size="small">图片 (.jpg, .png, .gif)</el-tag>
-              <el-tag size="small">代码 (.py, .js, .java)</el-tag>
-            </div>
+            <p>仅支持压缩文档 (.zip, .rar)</p>
           </div>
         </div>
       </el-card>
     </div>
 
-    <!-- 文件分类区域 -->
-    <div class="file-categories">
-      <div class="category-tabs">
-        <el-tabs v-model="activeCategory" @tab-change="handleCategoryChange">
-          <el-tab-pane label="代码文件" name="code">
-            <FileList
-              :files="categorizedFiles.code"
-              type="code"
-              @remove="removeFile"
-              @preview="previewSelectedFile"
-            />
-          </el-tab-pane>
-          
-          <el-tab-pane label="实验指导书" name="guide">
-            <FileList
-              :files="categorizedFiles.guide"
-              type="guide"
-              @remove="removeFile"
-              @preview="previewSelectedFile"
-            />
-          </el-tab-pane>
-          
-          <el-tab-pane label="结果图片" name="images">
-            <FileList
-              :files="categorizedFiles.images"
-              type="images"
-              @remove="removeFile"
-              @preview="previewSelectedFile"
-            />
-          </el-tab-pane>
-          
-          <el-tab-pane label="其他文件" name="others">
-            <FileList
-              :files="categorizedFiles.others"
-              type="others"
-              @remove="removeFile"
-              @preview="previewSelectedFile"
-            />
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-    </div>
 
     <!-- 操作按钮 -->
     <div class="action-buttons" v-if="hasFiles">
@@ -130,7 +82,6 @@ const router = useRouter()
 
 // 响应式数据
 const isDragOver = ref(false)
-const activeCategory = ref('code')
 const uploadedFiles = ref([])
 const previewVisible = ref(false)
 const previewFile = ref(null)
@@ -139,27 +90,6 @@ const previewContent = ref('')
 // 计算属性
 const hasFiles = computed(() => uploadedFiles.value.length > 0)
 
-const categorizedFiles = computed(() => {
-  const categories = {
-    code: [],
-    guide: [],
-    images: [],
-    others: []
-  }
-
-  uploadedFiles.value.forEach(file => {
-    if (file.category) {
-      categories[file.category].push(file)
-    } else {
-      // 自动分类
-      const category = categorizeFile(file)
-      file.category = category
-      categories[category].push(file)
-    }
-  })
-
-  return categories
-})
 
 // 文件预览函数
 const previewSelectedFile = (file) => {
@@ -174,29 +104,6 @@ const previewSelectedFile = (file) => {
 }
 
 // 文件分类逻辑
-const categorizeFile = (file) => {
-  const name = file.name.toLowerCase()
-  const type = file.type
-
-  // 图片文件
-  if (type.startsWith('image/')) {
-    return 'images'
-  }
-
-  // 代码文件
-  const codeExtensions = ['.py', '.js', '.java', '.cpp', '.c', '.h', '.css', '.html', '.vue', '.ts', '.jsx', '.tsx']
-  if (codeExtensions.some(ext => name.endsWith(ext)) || name.endsWith('.zip') || name.endsWith('.rar')) {
-    return 'code'
-  }
-
-  // 文档文件
-  const docExtensions = ['.pdf', '.doc', '.docx', '.txt', '.md']
-  if (docExtensions.some(ext => name.endsWith(ext))) {
-    return 'guide'
-  }
-
-  return 'others'
-}
 
 // 事件处理
 const handleDragOver = (e) => {
@@ -244,7 +151,17 @@ const selectFiles = async () => {
 }
 
 const addFiles = (files) => {
-  files.forEach(file => {
+  const validFiles = files.filter(file =>
+    file.name.toLowerCase().endsWith('.zip') ||
+    file.name.toLowerCase().endsWith('.rar')
+  );
+  
+  if (validFiles.length === 0) {
+    ElMessage.error('仅支持上传ZIP或RAR格式的压缩文件');
+    return;
+  }
+  
+  validFiles.forEach(file => {
     // 检查文件是否已存在
     const exists = uploadedFiles.value.some(f => f.name === file.name && f.size === file.size)
     if (!exists) {
@@ -255,13 +172,12 @@ const addFiles = (files) => {
         type: file.type || getFileType(file.name),
         lastModified: file.lastModified || Date.now(),
         url: file.path ? `file://${file.path}` : URL.createObjectURL(file),
-        category: null // 将在计算属性中自动分类
       }
       uploadedFiles.value.push(fileObj)
     }
-  })
+  });
   
-  ElMessage.success(`成功添加 ${files.length} 个文件`)
+  ElMessage.success(`成功添加 ${validFiles.length} 个压缩文件`);
 }
 
 const getFileType = (fileName) => {
@@ -318,16 +234,12 @@ const proceedToGenerate = () => {
       files: JSON.stringify(uploadedFiles.value.map(f => ({
         id: f.id,
         name: f.name,
-        category: f.category,
         type: f.type
       })))
     }
   })
 }
 
-const handleCategoryChange = (category) => {
-  activeCategory.value = category
-}
 
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 B'
