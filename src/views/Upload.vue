@@ -18,12 +18,13 @@
           </div>
         </template>
 
-        <div 
+        <div
           class="upload-area"
           :class="{ 'drag-over': isDragOver }"
           @drop="handleDrop"
           @dragover="handleDragOver"
           @dragleave="handleDragLeave"
+          @click="selectFiles"
         >
           <div class="upload-content">
             <el-icon size="48" color="#8a8886"><Upload /></el-icon>
@@ -36,15 +37,46 @@
 
 
     <!-- 操作按钮 -->
-    <div class="action-buttons" v-if="hasFiles">
+    <div class="action-buttons" v-if="currentStep === 1 && hasFiles">
       <el-button @click="clearAllFiles">
         <el-icon><Delete /></el-icon>
-        清空所有文件
+        清空文件
       </el-button>
+    </div>
+    
+    <div class="action-buttons" v-if="currentStep === 2">
       <el-button type="primary" @click="proceedToGenerate">
         <el-icon><ArrowRight /></el-icon>
-        继续生成报告
+        确认并继续
       </el-button>
+    </div>
+
+    <!-- 解压后文件列表 -->
+    <div v-if="currentStep === 2" class="extracted-files">
+      <el-card>
+        <template #header>
+          <div class="card-header">
+            <span>解压后的文件</span>
+            <el-button type="primary" @click="resetUpload">
+              <el-icon><Refresh /></el-icon>
+              重新上传
+            </el-button>
+          </div>
+        </template>
+        
+        <div class="file-list">
+          <div v-for="(file, index) in extractedFiles" :key="index" class="file-item">
+            <el-icon><Document /></el-icon>
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ formatFileSize(file.size) }}</span>
+          </div>
+          
+          <div v-if="extractedFiles.length === 0" class="no-files">
+            <el-icon><Warning /></el-icon>
+            <p>解压后未找到有效文件</p>
+          </div>
+        </div>
+      </el-card>
     </div>
 
     <!-- 文件预览对话框 -->
@@ -86,6 +118,8 @@ const uploadedFiles = ref([])
 const previewVisible = ref(false)
 const previewFile = ref(null)
 const previewContent = ref('')
+const currentStep = ref(1) // 1: 上传, 2: 解压完成
+const extractedFiles = ref([])
 
 // 计算属性
 const hasFiles = computed(() => uploadedFiles.value.length > 0)
@@ -126,31 +160,24 @@ const handleDrop = (e) => {
 
 const selectFiles = async () => {
   try {
-    const { ipcRenderer } = window.require('electron')
-    const result = await ipcRenderer.invoke('select-files')
-    
-    if (!result.canceled && result.filePaths.length > 0) {
-      // 这里需要将文件路径转换为File对象
-      // 在实际应用中，需要读取文件内容
-      const files = result.filePaths.map(path => {
-        const name = path.split(/[/\\]/).pop()
-        return {
-          name,
-          path,
-          size: 0, // 需要实际获取文件大小
-          type: getFileType(name),
-          lastModified: Date.now()
-        }
-      })
-      addFiles(files)
-    }
+    // 创建文件输入元素
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,.rar';
+    input.onchange = async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        await addFiles(files);
+      }
+    };
+    input.click();
   } catch (error) {
-    console.error('选择文件失败:', error)
-    ElMessage.error('选择文件失败')
+    console.error('选择文件失败:', error);
+    ElMessage.error('选择文件失败');
   }
 }
 
-const addFiles = (files) => {
+const addFiles = async (files) => {
   const validFiles = files.filter(file =>
     file.name.toLowerCase().endsWith('.zip') ||
     file.name.toLowerCase().endsWith('.rar')
@@ -161,23 +188,82 @@ const addFiles = (files) => {
     return;
   }
   
-  validFiles.forEach(file => {
-    // 检查文件是否已存在
-    const exists = uploadedFiles.value.some(f => f.name === file.name && f.size === file.size)
-    if (!exists) {
-      const fileObj = {
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        type: file.type || getFileType(file.name),
-        lastModified: file.lastModified || Date.now(),
-        url: file.path ? `file://${file.path}` : URL.createObjectURL(file),
-      }
-      uploadedFiles.value.push(fileObj)
-    }
-  });
+  // 只允许上传一个压缩包
+  if (uploadedFiles.value.length > 0) {
+    ElMessage.warning('已存在压缩包，将替换为新上传的文件');
+    uploadedFiles.value = [];
+  }
   
-  ElMessage.success(`成功添加 ${validFiles.length} 个压缩文件`);
+  const file = validFiles[0];
+  const fileObj = {
+    id: Date.now() + Math.random(),
+    name: file.name,
+    size: file.size,
+    type: file.type || getFileType(file.name),
+    lastModified: file.lastModified || Date.now(),
+    url: file.path ? `file://${file.path}` : URL.createObjectURL(file),
+    originalFile: file // 保存原始文件引用
+  };
+  uploadedFiles.value.push(fileObj);
+  
+  // 自动解压
+  await extractArchive(fileObj);
+}
+
+const extractArchive = async (fileObj) => {
+  try {
+    // 需要重新获取原始的File对象
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,.rar';
+    
+    // 创建一个Promise来处理文件选择
+    const getFile = () => {
+      return new Promise((resolve, reject) => {
+        input.onchange = (e) => {
+          const files = Array.from(e.target.files);
+          if (files.length > 0) {
+            resolve(files[0]);
+          } else {
+            reject(new Error('未选择文件'));
+          }
+        };
+        input.click();
+      });
+    };
+    
+    // 如果fileObj有原始文件引用，直接使用
+    let actualFile;
+    if (fileObj.originalFile) {
+      actualFile = fileObj.originalFile;
+    } else {
+      // 否则提示用户重新选择
+      ElMessage.warning('请重新选择文件进行上传');
+      actualFile = await getFile();
+    }
+    
+    const formData = new FormData();
+    formData.append('file', actualFile);
+    
+    const response = await fetch('/api/v1/files/upload-and-extract', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}: 解压失败`);
+    }
+    
+    const data = await response.json();
+    extractedFiles.value = data.extracted_files;
+    currentStep.value = 2;
+    ElMessage.success(`解压成功，共 ${data.count} 个文件`);
+  } catch (error) {
+    console.error('解压失败:', error);
+    ElMessage.error(`解压失败: ${error.message}`);
+    uploadedFiles.value = []; // 清空无效的压缩包
+  }
 }
 
 const getFileType = (fileName) => {
@@ -227,17 +313,25 @@ const clearAllFiles = async () => {
 }
 
 const proceedToGenerate = () => {
-  // 将文件信息传递给生成页面
+  // 将解压后的文件信息传递给生成页面
   router.push({
     name: 'Generate',
     query: {
-      files: JSON.stringify(uploadedFiles.value.map(f => ({
-        id: f.id,
+      files: JSON.stringify(extractedFiles.value.map(f => ({
+        id: Date.now() + Math.random(),
         name: f.name,
-        type: f.type
+        path: f.path,
+        size: f.size,
+        type: getFileType(f.name)
       })))
     }
   })
+}
+
+const resetUpload = () => {
+  uploadedFiles.value = [];
+  extractedFiles.value = [];
+  currentStep.value = 1;
 }
 
 
@@ -375,6 +469,59 @@ onMounted(() => {
   margin: var(--spacing-sm) 0;
 }
 
+.extracted-files {
+  margin-bottom: var(--spacing-xl);
+}
+
+.file-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item .el-icon {
+  margin-right: var(--spacing-sm);
+  color: var(--color-text-secondary);
+}
+
+.file-name {
+  flex: 1;
+  margin-right: var(--spacing-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.file-size {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.no-files {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.no-files .el-icon {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-warning);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .upload-container {
@@ -395,6 +542,16 @@ onMounted(() => {
   .supported-formats {
     flex-direction: column;
     align-items: center;
+  }
+  
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .file-name {
+    margin-right: 0;
   }
 }
 </style>

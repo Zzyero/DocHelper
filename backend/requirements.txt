@@ -24,6 +24,7 @@ numpy==1.26.0
 # 文件处理
 Pillow==10.1.0
 openpyxl==3.1.2
+rarfile==4.1
 
 # 数据库
 # sqlite3 (内置模块，无需安装)  # Python 内置

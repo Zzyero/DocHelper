@@ -9,7 +9,7 @@ import shutil
 from typing import List
 from fastapi import UploadFile
 import aiofiles
-from backend.utils.config import Config
+from .config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -87,3 +87,63 @@ class FileUtils:
         except Exception as e:
             logger.error(f"读取文件内容失败: {str(e)}")
             raise Exception(f"读取文件内容失败: {str(e)}")
+    
+    async def extract_archive(self, file_path: str, extract_to: str) -> list:
+        """解压压缩文件到指定目录"""
+        try:
+            if not os.path.exists(file_path):
+                raise Exception(f"压缩文件不存在: {file_path}")
+            
+            if not os.path.exists(extract_to):
+                os.makedirs(extract_to)
+            
+            extracted_files = []
+            file_ext = os.path.splitext(file_path)[1].lower()
+            
+            if file_ext == '.zip':
+                import zipfile
+                try:
+                    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                        # 检查ZIP文件是否有效
+                        zip_ref.testzip()
+                        # 获取文件列表
+                        file_list = zip_ref.namelist()
+                        # 解压所有文件
+                        zip_ref.extractall(extract_to)
+                        extracted_files = file_list
+                except zipfile.BadZipFile:
+                    raise Exception("无效的ZIP文件格式")
+                except zipfile.LargeZipFile:
+                    raise Exception("ZIP文件过大，需要ZIP64支持")
+                    
+            elif file_ext == '.rar':
+                try:
+                    import rarfile
+                    with rarfile.RarFile(file_path, 'r') as rar_ref:
+                        # 获取文件列表
+                        file_list = rar_ref.namelist()
+                        # 解压所有文件
+                        rar_ref.extractall(extract_to)
+                        extracted_files = file_list
+                except ImportError:
+                    raise Exception("系统不支持RAR文件解压，请安装rarfile库")
+                except rarfile.BadRarFile:
+                    raise Exception("无效的RAR文件格式")
+                except Exception as e:
+                    raise Exception(f"RAR文件解压失败: {str(e)}")
+            else:
+                raise Exception(f"不支持的压缩文件格式: {file_ext}")
+            
+            # 过滤掉目录，只返回文件
+            actual_files = []
+            for f in extracted_files:
+                full_path = os.path.join(extract_to, f)
+                if os.path.isfile(full_path):
+                    actual_files.append(f)
+            
+            logger.info(f"解压成功: {file_path} -> {extract_to}, 共 {len(actual_files)} 个文件")
+            return actual_files
+            
+        except Exception as e:
+            logger.error(f"解压文件失败: {str(e)}")
+            raise Exception(f"解压文件失败: {str(e)}")

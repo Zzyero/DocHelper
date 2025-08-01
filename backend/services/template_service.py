@@ -6,7 +6,7 @@
 import logging
 import os
 from typing import List, Dict
-from backend.utils.config import Config
+from utils.config import Config
 
 logger = logging.getLogger(__name__)
 

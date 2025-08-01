@@ -6,7 +6,7 @@ AI 服务模块
 import logging
 from typing import Optional
 import openai
-from backend.utils.config import Config
+from utils.config import Config
 
 logger = logging.getLogger(__name__)
 
