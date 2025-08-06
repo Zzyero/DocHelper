@@ -285,14 +285,16 @@ const loadSettings = async () => {
     const response = await fetch('/api/v1/settings/user-settings')
     if (response.ok) {
       const data = await response.json()
+      
+      // 直接替换整个对象而不是合并，确保所有字段都正确加载
       if (data.ai_settings) {
-        aiSettings.value = { ...aiSettings.value, ...data.ai_settings }
+        aiSettings.value = { ...data.ai_settings }
       }
       if (data.doc_settings) {
-        docSettings.value = { ...docSettings.value, ...data.doc_settings }
+        docSettings.value = { ...data.doc_settings }
       }
       if (data.app_settings) {
-        appSettings.value = { ...appSettings.value, ...data.app_settings }
+        appSettings.value = { ...data.app_settings }
       }
     } else {
       console.warn('获取设置失败，使用默认设置')
@@ -351,6 +353,8 @@ const saveAiSettings = async () => {
     
     if (response.ok) {
       ElMessage.success('AI 模型配置已保存')
+      // 保存成功后重新加载设置，确保数据同步
+      await loadSettings()
     } else {
       ElMessage.error('保存失败')
     }
@@ -374,6 +378,8 @@ const saveDocSettings = async () => {
     
     if (response.ok) {
       ElMessage.success('文档生成设置已保存')
+      // 保存成功后重新加载设置，确保数据同步
+      await loadSettings()
     } else {
       ElMessage.error('保存失败')
     }
@@ -397,6 +403,8 @@ const saveAppSettings = async () => {
     
     if (response.ok) {
       ElMessage.success('应用程序设置已保存')
+      // 保存成功后重新加载设置，确保数据同步
+      await loadSettings()
     } else {
       ElMessage.error('保存失败')
     }
