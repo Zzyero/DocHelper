@@ -296,26 +296,54 @@ const startGeneration = async () => {
   try {
     // 步骤1: 分析文件
     progressText.value = '正在分析上传的文件...'
-    await simulateStep(1, 25)
+    progressPercentage.value = 25
+    currentStep.value = 1
+
+    // 获取文件路径
+    const filePaths = projectFiles.value.map(file => file.path).filter(path => path)
 
     // 步骤2: AI 生成
-    currentStep.value = 1
     progressText.value = '正在调用 AI 生成报告内容...'
-    await simulateStep(2, 70)
-
-    // 步骤3: 格式转换
+    progressPercentage.value = 50
     currentStep.value = 2
+
+    // 调用后端API生成报告
+    const formData = new FormData()
+    // 使用从路由传递的项目ID，如果没有则创建临时ID
+    const projectId = route.query.projectId || ('proj_' + Date.now())
+    formData.append('project_id', projectId)
+    formData.append('format_type', generateConfig.value.format)
+    if (generateConfig.value.templateId) {
+      formData.append('template_id', generateConfig.value.templateId)
+    }
+    if (generateConfig.value.customPrompt) {
+      formData.append('custom_prompt', generateConfig.value.customPrompt)
+    }
+
+    const response = await fetch('/api/v1/generate', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || `HTTP ${response.status}: 生成失败`)
+    }
+
+    const data = await response.json()
+    
+    // 步骤3: 格式转换
     progressText.value = '正在转换为目标格式...'
-    await simulateStep(3, 90)
+    progressPercentage.value = 90
+    currentStep.value = 3
 
     // 步骤4: 完成
-    currentStep.value = 3
     progressText.value = '报告生成完成！'
     progressPercentage.value = 100
     progressStatus.value = 'success'
 
-    // 模拟生成的内容
-    generatedContent.value = generateMockContent()
+    // 使用实际生成的内容
+    generatedContent.value = data.report_content || data.project?.output_path || generateMockContent()
     renderedContent.value = renderContent(generatedContent.value)
 
     setTimeout(() => {

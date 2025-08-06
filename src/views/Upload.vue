@@ -2,38 +2,86 @@
   <div class="upload-container">
     <div class="page-header">
       <h1>文件上传</h1>
-      <p>请上传压缩文档（.zip, .rar），系统将自动解压获取实验文件。仅支持ZIP/RAR格式。</p>
+      <p>支持上传压缩文档（.zip, .rar）自动解压，或直接上传实验文件</p>
     </div>
 
-    <!-- 上传区域 -->
-    <div class="upload-section">
-      <el-card class="upload-card">
-        <template #header>
-          <div class="card-header">
-            <span>拖拽上传</span>
-            <el-button type="primary" @click="selectFiles">
-              <el-icon><Plus /></el-icon>
-              选择文件
-            </el-button>
-          </div>
-        </template>
+    <!-- 上传选项卡 -->
+    <div class="upload-tabs">
+      <el-tabs v-model="activeTab" type="card">
+        <el-tab-pane label="压缩包上传" name="archive">
+          <div class="tab-content">
+            <p class="tab-description">上传ZIP/RAR压缩包，系统将自动解压获取实验文件</p>
+            
+            <!-- 压缩包上传区域 -->
+            <div class="upload-section">
+              <el-card class="upload-card">
+                <template #header>
+                  <div class="card-header">
+                    <span>拖拽上传压缩包</span>
+                    <el-button type="primary" @click="selectArchiveFiles">
+                      <el-icon><Plus /></el-icon>
+                      选择压缩包
+                    </el-button>
+                  </div>
+                </template>
 
-        <div
-          class="upload-area"
-          :class="{ 'drag-over': isDragOver }"
-          @drop="handleDrop"
-          @dragover="handleDragOver"
-          @dragleave="handleDragLeave"
-          @click="selectFiles"
-        >
-          <div class="upload-content">
-            <el-icon size="48" color="#8a8886"><Upload /></el-icon>
-            <h3>拖拽文件到此处，或点击选择文件</h3>
-            <p>仅支持压缩文档 (.zip, .rar)</p>
+                <div
+                  class="upload-area"
+                  :class="{ 'drag-over': isDragOver }"
+                  @drop="handleArchiveDrop"
+                  @dragover="handleDragOver"
+                  @dragleave="handleDragLeave"
+                  @click="selectArchiveFiles"
+                >
+                  <div class="upload-content">
+                    <el-icon size="48" color="#8a8886"><Upload /></el-icon>
+                    <h3>拖拽压缩包到此处，或点击选择文件</h3>
+                    <p>仅支持 .zip, .rar 格式</p>
+                  </div>
+                </div>
+              </el-card>
+            </div>
           </div>
-        </div>
-      </el-card>
+        </el-tab-pane>
+        
+        <el-tab-pane label="文件上传" name="files">
+          <div class="tab-content">
+            <p class="tab-description">直接上传实验文件（代码、文档、图片等）</p>
+            
+            <!-- 文件上传区域 -->
+            <div class="upload-section">
+              <el-card class="upload-card">
+                <template #header>
+                  <div class="card-header">
+                    <span>拖拽文件上传</span>
+                    <el-button type="primary" @click="selectNormalFiles">
+                      <el-icon><Plus /></el-icon>
+                      选择文件
+                    </el-button>
+                  </div>
+                </template>
+
+                <div
+                  class="upload-area"
+                  :class="{ 'drag-over': isDragOver }"
+                  @drop="handleFilesDrop"
+                  @dragover="handleDragOver"
+                  @dragleave="handleDragLeave"
+                  @click="selectNormalFiles"
+                >
+                  <div class="upload-content">
+                    <el-icon size="48" color="#8a8886"><Upload /></el-icon>
+                    <h3>拖拽文件到此处，或点击选择文件</h3>
+                    <p>支持多种文件格式</p>
+                  </div>
+                </div>
+              </el-card>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
+
     <!-- 解压加载指示器 -->
     <div v-if="isExtracting" class="extracting-indicator">
       <el-card>
@@ -133,6 +181,7 @@ const previewContent = ref('')
 const currentStep = ref(1) // 1: 上传, 2: 解压完成
 const extractedFiles = ref([])
 const isExtracting = ref(false) // 解压状态
+const activeTab = ref('archive') // 默认选中压缩包上传
 
 // 计算属性
 const hasFiles = computed(() => uploadedFiles.value.length > 0)
@@ -188,6 +237,101 @@ const selectFiles = async () => {
     console.error('选择文件失败:', error);
     ElMessage.error('选择文件失败');
   }
+}
+
+// 普通文件上传相关函数
+const selectNormalFiles = async () => {
+  try {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.onchange = async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        await uploadNormalFiles(files);
+      }
+    };
+    input.click();
+  } catch (error) {
+    console.error('选择文件失败:', error);
+    ElMessage.error('选择文件失败');
+  }
+}
+
+const handleFilesDrop = (e) => {
+  e.preventDefault();
+  isDragOver.value = false;
+  
+  const files = Array.from(e.dataTransfer.files);
+  uploadNormalFiles(files);
+}
+
+const uploadNormalFiles = async (files) => {
+  try {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    const response = await fetch('/api/v1/files/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}: 上传失败`);
+    }
+
+    const data = await response.json();
+    
+    // 直接跳转到生成页面
+    router.push({
+      name: 'Generate',
+      query: {
+        files: JSON.stringify(data.files.map(f => ({
+          id: Date.now() + Math.random(),
+          name: f.name,
+          path: f.path,
+          size: f.size,
+          type: f.type,
+          category: f.category
+        })))
+      }
+    });
+    
+    ElMessage.success(`成功上传 ${data.files.length} 个文件`);
+  } catch (error) {
+    console.error('文件上传失败:', error);
+    ElMessage.error(`文件上传失败: ${error.message}`);
+  }
+}
+
+// 压缩包上传相关函数
+const selectArchiveFiles = async () => {
+  try {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.zip,.rar';
+    input.onchange = async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        await addFiles(files);
+      }
+    };
+    input.click();
+  } catch (error) {
+    console.error('选择文件失败:', error);
+    ElMessage.error('选择文件失败');
+  }
+}
+
+const handleArchiveDrop = (e) => {
+  e.preventDefault();
+  isDragOver.value = false;
+  
+  const files = Array.from(e.dataTransfer.files);
+  addFiles(files);
 }
 
 const addFiles = async (files) => {
@@ -338,20 +482,51 @@ const clearAllFiles = async () => {
   }
 }
 
-const proceedToGenerate = () => {
-  // 将解压后的文件信息传递给生成页面
-  router.push({
-    name: 'Generate',
-    query: {
-      files: JSON.stringify(extractedFiles.value.map(f => ({
-        id: Date.now() + Math.random(),
-        name: f.name,
-        path: f.path,
-        size: f.size,
-        type: getFileType(f.name)
-      })))
+const proceedToGenerate = async () => {
+  try {
+    // 创建项目记录
+    const projectData = new FormData();
+    projectData.append('name', '实验报告项目');
+    projectData.append('description', '通过文件上传自动生成的项目');
+    
+    // 添加文件路径
+    extractedFiles.value.forEach(file => {
+      projectData.append('file_paths', file.path);
+    });
+
+    const response = await fetch('/api/v1/projects', {
+      method: 'POST',
+      body: projectData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}: 创建项目失败`);
     }
-  })
+
+    const projectResult = await response.json();
+    const projectId = projectResult.project.id;
+
+    // 跳转到生成页面，传递项目ID
+    router.push({
+      name: 'Generate',
+      query: {
+        projectId: projectId,
+        files: JSON.stringify(extractedFiles.value.map(f => ({
+          id: Date.now() + Math.random(),
+          name: f.name,
+          path: f.path,
+          size: f.size,
+          type: getFileType(f.name)
+        })))
+      }
+    });
+    
+    ElMessage.success('项目创建成功，正在跳转到生成页面...');
+  } catch (error) {
+    console.error('创建项目失败:', error);
+    ElMessage.error('创建项目失败: ' + error.message);
+  }
 }
 
 const resetUpload = async () => {

@@ -1,0 +1,23 @@
+{
+  "id": "proj_1754462390175",
+  "name": "测试项目",
+  "description": "用于测试的项目",
+  "status": "completed",
+  "files": [
+    {
+      "name": "README.md",
+      "path": "uploads/extracted\\test_project\\README.md",
+      "size": 106,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "test.js",
+      "path": "uploads/extracted\\test_project\\test.js",
+      "size": 29,
+      "type": "application/octet-stream"
+    }
+  ],
+  "output_path": "outputs\\report_proj_1754462390175.md",
+  "created_at": "2025-08-06T14:39:50.175233",
+  "updated_at": "2025-08-06T14:40:40.041557"
+}

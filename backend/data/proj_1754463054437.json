@@ -1,0 +1,401 @@
+{
+  "id": "proj_1754463054437",
+  "name": "实验报告项目",
+  "description": "通过文件上传自动生成的项目",
+  "status": "completed",
+  "files": [
+    {
+      "name": "experiments_1_fnn_section1-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_1_fnn_section1-checkpoint.ipynb",
+      "size": 185944,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_1_fnn_section2-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_1_fnn_section2-checkpoint.ipynb",
+      "size": 61236,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_2_cnn_section1-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_2_cnn_section1-checkpoint.ipynb",
+      "size": 34705,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_2_cnn_section2-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_2_cnn_section2-checkpoint.ipynb",
+      "size": 265410,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_3_rnn_section1-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_3_rnn_section1-checkpoint.ipynb",
+      "size": 153910,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_3_rnn_section2-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_3_rnn_section2-checkpoint.ipynb",
+      "size": 597361,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_4_seq2seq_section1-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_4_seq2seq_section1-checkpoint.ipynb",
+      "size": 29306,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_4_seq2seq_section2-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_4_seq2seq_section2-checkpoint.ipynb",
+      "size": 30635,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_5_autoencoder_section1-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_5_autoencoder_section1-checkpoint.ipynb",
+      "size": 844348,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_5_autoencoder_section2-checkpoint.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/.ipynb_checkpoints/experiments_5_autoencoder_section2-checkpoint.ipynb",
+      "size": 277023,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "code.txt",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/code.txt",
+      "size": 1497740,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "B题_电力系统负荷预测分析.pdf",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/data/B题_电力系统负荷预测分析.pdf",
+      "size": 159513,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "dataset.csv",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/data/dataset.csv",
+      "size": 1906232,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "附件1-区域15分钟负荷数据.csv",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/data/附件1-区域15分钟负荷数据.csv",
+      "size": 4102540,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "附件2-行业日负荷数据.csv",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/data/附件2-行业日负荷数据.csv",
+      "size": 164358,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "附件3-气象数据.csv",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/data/附件3-气象数据.csv",
+      "size": 108382,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_3_rnn_section1.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/experiments_3_rnn_section1.ipynb",
+      "size": 601591,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "experiments_3_rnn_section2.ipynb",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/experiments_3_rnn_section2.ipynb",
+      "size": 886828,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "1.jpg",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/1.jpg",
+      "size": 164842,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "2.JPG",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/2.JPG",
+      "size": 142953,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "3.JPG",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/3.JPG",
+      "size": 144297,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "4.JPG",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/4.JPG",
+      "size": 43317,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "5.JPG",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/5.JPG",
+      "size": 45023,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "6.JPG",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/6.JPG",
+      "size": 24926,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "7.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/7.png",
+      "size": 23617,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "alexnet.svg",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/alexnet.svg",
+      "size": 353929,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "ANTQUAB.TTF",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/ANTQUAB.TTF",
+      "size": 151000,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "attention.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/attention.png",
+      "size": 51249,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "bp.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/bp.png",
+      "size": 51165,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn1.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn1.png",
+      "size": 363459,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn10.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn10.gif",
+      "size": 22968,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn11.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn11.gif",
+      "size": 3662080,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn11.mp4",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn11.mp4",
+      "size": 245211,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn12.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn12.png",
+      "size": 94931,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn13.webp",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn13.webp",
+      "size": 92402,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn14.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn14.gif",
+      "size": 87927,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn2.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn2.png",
+      "size": 17917,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn3.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn3.gif",
+      "size": 251869,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn4.webp",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn4.webp",
+      "size": 89206,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn5.webp",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn5.webp",
+      "size": 11500,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn6.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn6.gif",
+      "size": 279522,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn7.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn7.gif",
+      "size": 154584,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn8.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn8.gif",
+      "size": 149098,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "cnn9.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/cnn9.gif",
+      "size": 18881,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "conv2d.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/conv2d.png",
+      "size": 143365,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "DejaVuSansMono.ttf",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/DejaVuSansMono.ttf",
+      "size": 340240,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "fnn.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/fnn.png",
+      "size": 69512,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "gradient_descent.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/gradient_descent.png",
+      "size": 4889,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "lenet.svg",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/lenet.svg",
+      "size": 317131,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "logistic.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/logistic.png",
+      "size": 3405,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "nn-xor.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/nn-xor.png",
+      "size": 125100,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "perceptron.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/perceptron.png",
+      "size": 13590,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "pooling.svg",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/pooling.svg",
+      "size": 44663,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "pytorch_03_01.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/pytorch_03_01.png",
+      "size": 16925,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "pytorch_04_01.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/pytorch_04_01.png",
+      "size": 238521,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "pytorch_04_02.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/pytorch_04_02.png",
+      "size": 16660,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "pytorch_04_03.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/pytorch_04_03.png",
+      "size": 16946,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "q64uz8wi2b.gif",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/q64uz8wi2b.gif",
+      "size": 178884,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "relu.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/relu.png",
+      "size": 3576,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "rnn_cell.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/rnn_cell.png",
+      "size": 12130,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "rnn_timespan.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/rnn_timespan.png",
+      "size": 26447,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "seq2seq.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/seq2seq.png",
+      "size": 67474,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "simple_nn.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/simple_nn.png",
+      "size": 90411,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "tanh.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/tanh.png",
+      "size": 4337,
+      "type": "application/octet-stream"
+    },
+    {
+      "name": "xor.png",
+      "path": "uploads/extracted\\2024-NNDL-EXPS-3\\2024-NNDL-EXPS-3/img/xor.png",
+      "size": 5716,
+      "type": "application/octet-stream"
+    }
+  ],
+  "output_path": "outputs\\report_proj_1754463054437.md",
+  "created_at": "2025-08-06T14:50:54.437969",
+  "updated_at": "2025-08-06T14:54:58.680552"
+}

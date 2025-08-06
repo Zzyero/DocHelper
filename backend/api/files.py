@@ -7,10 +7,17 @@ import logging
 import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from utils.file_utils import FileUtils
+from typing import List
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 file_utils = FileUtils()
+
+@router.get("/")
+async def get_files_status():
+    """获取文件服务状态"""
+    return {"status": "files service ready"}
 
 @router.post("/upload-and-extract")
 async def upload_and_extract(file: UploadFile = File(...)):
@@ -86,3 +93,43 @@ async def upload_and_extract(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"文件处理失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"文件处理失败: {str(e)}")
+
+@router.post("/upload")
+async def upload_files(files: List[UploadFile] = File(...)):
+    """上传文件"""
+    try:
+        if not files:
+            raise HTTPException(status_code=400, detail="请选择要上传的文件")
+        
+        # 创建上传目录
+        upload_dir = "uploads"
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+        
+        # 保存文件并分类
+        uploaded_files = []
+        for file in files:
+            # 保存文件
+            file_path = await file_utils.save_uploaded_file(file)
+            
+            # 分析文件类型
+            file_category = file_utils.analyze_file_type(file.filename, file.content_type)
+            
+            uploaded_files.append({
+                "name": file.filename,
+                "path": file_path,
+                "size": file.size or 0,
+                "type": file.content_type or "application/octet-stream",
+                "category": file_category,
+                "lastModified": datetime.now().isoformat()
+            })
+        
+        return {
+            "success": True,
+            "files": uploaded_files,
+            "message": f"成功上传 {len(files)} 个文件"
+        }
+        
+    except Exception as e:
+        logger.error(f"文件上传失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"文件上传失败: {str(e)}")

@@ -19,7 +19,16 @@
     "checkUpdates": true,
     "analytics": false
   },
-  "uploaded_files": [],
+  "uploaded_files": [
+    {
+      "id": 1754463049306.7695,
+      "name": "2024-NNDL-EXPS-3.zip",
+      "size": 13111583,
+      "type": "application/x-zip-compressed",
+      "lastModified": 1754461131844,
+      "url": "blob:http://localhost:5173/dc210812-8207-4052-9b65-3ec7e10815d8"
+    }
+  ],
   "created_at": "2025-08-03T10:30:22.102580",
-  "updated_at": "2025-08-06T11:05:28.499237"
+  "updated_at": "2025-08-06T14:50:49.311988"
 }

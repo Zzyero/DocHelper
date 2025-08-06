@@ -123,9 +123,9 @@ async def health_check():
 async def create_project(
     name: str = Form(...),
     description: str = Form(""),
-    files: List[UploadFile] = File(...)
+    file_paths: List[str] = Form(...)
 ):
-    """创建新项目"""
+    """创建新项目（基于已存在的文件路径）"""
     try:
         # 创建项目实例
         project = Project(
@@ -134,15 +134,19 @@ async def create_project(
             status=ProjectStatus.CREATED
         )
         
-        # 保存上传的文件
+        # 验证文件路径并构建文件信息
         uploaded_files = []
-        for file in files:
-            file_path = await file_utils.save_uploaded_file(file, project.id)
+        for file_path in file_paths:
+            if not os.path.exists(file_path):
+                raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}")
+            
+            # 获取文件信息
+            file_stat = os.stat(file_path)
             uploaded_files.append({
-                "name": file.filename,
+                "name": os.path.basename(file_path),
                 "path": file_path,
-                "size": file.size,
-                "type": file.content_type
+                "size": file_stat.st_size,
+                "type": "application/octet-stream"  # 实际应用中应该根据文件扩展名确定类型
             })
         
         project.files = uploaded_files
@@ -158,6 +162,8 @@ async def create_project(
             "message": "项目创建成功"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"创建项目失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"创建项目失败: {str(e)}")
@@ -209,13 +215,36 @@ async def generate_report(
         if not project:
             raise HTTPException(status_code=404, detail="项目不存在")
         
+        # 检查项目文件
+        if not project.files:
+            raise HTTPException(status_code=400, detail="项目没有文件")
+        
         # 更新项目状态
         project.status = ProjectStatus.GENERATING
+        project.updated_at = datetime.now()
         await project.save()
+        
+        # 提取文件路径
+        file_paths = [file_info["path"] for file_info in project.files if os.path.exists(file_info["path"])]
+        if not file_paths:
+            raise HTTPException(status_code=400, detail="项目文件不存在")
+        
+        # 分析项目文件内容
+        logger.info(f"开始分析项目文件，共 {len(file_paths)} 个文件")
+        project_analysis = await document_service.analyze_project_files(file_paths)
+        
+        # 构建项目信息
+        project_info = {
+            "name": project.name,
+            "description": project.description,
+            "created_at": project.created_at.isoformat() if project.created_at else datetime.now().isoformat(),
+            "file_count": len(project.files)
+        }
         
         # 调用 AI 服务生成报告
         report_content = await ai_service.generate_report(
-            project=project,
+            project_analysis=project_analysis,
+            project_info=project_info,
             template_id=template_id,
             format_type=format_type,
             custom_prompt=custom_prompt
@@ -240,6 +269,7 @@ async def generate_report(
             "success": True,
             "project": project.to_dict(),
             "output_path": output_path,
+            "report_content": report_content,
             "message": "报告生成成功"
         }
         
@@ -253,6 +283,7 @@ async def generate_report(
             project = await Project.get_by_id(project_id)
             if project:
                 project.status = ProjectStatus.FAILED
+                project.updated_at = datetime.now()
                 await project.save()
         except:
             pass

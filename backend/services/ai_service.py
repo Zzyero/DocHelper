@@ -4,7 +4,7 @@ AI 服务模块
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Dict
 import openai
 from utils.config import Config
 from models.user_settings import UserSettings
@@ -93,44 +93,26 @@ class AIService:
         api_key = self._get_api_key()
         return self.client is not None and api_key is not None
     
-    async def generate_report(self, project, template_id: Optional[str] = None, 
+    async def generate_report(self, project_analysis: Dict, project_info: Dict, template_id: Optional[str] = None, 
                             format_type: str = "markdown", custom_prompt: Optional[str] = None):
         """生成实验报告"""
         try:
-            # 构建提示词
-            prompt = f"""请为以下实验项目生成一份详细的实验报告：
-
-项目名称：{project.name}
-项目描述：{project.description}
-
-实验文件：
-{chr(10).join([f"- {file['name']}" for file in project.files])}
-
-请按照以下结构生成报告：
-1. 实验目的
-2. 实验内容
-3. 实验步骤
-4. 实验结果
-5. 实验分析
-6. 实验总结
-
-要求：
-- 内容详实，逻辑清晰
-- 语言专业，格式规范
-- 根据实验文件内容生成具体的分析
-- 报告长度不少于1000字
-"""
+            # 构建详细的提示词
+            system_prompt = """你是一位专业的实验报告写作助手，具有丰富的计算机科学和工程实验经验。请根据提供的实验文件内容，生成一份结构完整、内容详实、逻辑清晰的实验报告。"""
             
+            # 构建用户提示词
             if custom_prompt:
-                prompt = custom_prompt
+                user_prompt = custom_prompt
+            else:
+                user_prompt = self._build_report_prompt(project_analysis, project_info)
             
             # 调用AI模型生成报告
             if self.client:
                 response = self.client.chat.completions.create(
                     model=self._get_model_name(),
                     messages=[
-                        {"role": "system", "content": "你是一位专业的实验报告写作助手，请生成格式规范、内容详实的实验报告。"},
-                        {"role": "user", "content": prompt}
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
                     ],
                     temperature=0.7,
                     max_tokens=4000
@@ -140,7 +122,7 @@ class AIService:
                 return report_content
             else:
                 # 如果AI服务不可用，返回占位符内容
-                report_content = f"# {project.name}\n\n这是使用 AI 生成的实验报告。\n\n"
+                report_content = f"# {project_info.get('name', '实验报告')}\n\n这是使用 AI 生成的实验报告。\n\n"
                 report_content += "## 实验目的\n\n请在此处描述实验目的。\n\n"
                 report_content += "## 实验内容\n\n请在此处描述实验内容。\n\n"
                 report_content += "## 实验结果\n\n请在此处描述实验结果。\n\n"
@@ -150,3 +132,89 @@ class AIService:
         except Exception as e:
             logger.error(f"生成报告失败: {str(e)}")
             raise Exception(f"生成报告失败: {str(e)}")
+    
+    def _build_report_prompt(self, project_analysis: Dict, project_info: Dict) -> str:
+        """构建报告生成的提示词"""
+        prompt = f"""请为以下实验项目生成一份详细的实验报告：
+
+## 项目基本信息
+项目名称：{project_info.get('name', '未命名项目')}
+创建时间：{project_info.get('created_at', '未知')}
+
+## 项目文件概览
+- 总文件数：{project_analysis.get('total_files', 0)} 个
+- 代码文件：{project_analysis.get('code_files_count', 0)} 个
+- 文档文件：{project_analysis.get('document_files_count', 0)} 个
+- 图片文件：{project_analysis.get('image_files_count', 0)} 个
+- 其他文件：{project_analysis.get('other_files_count', 0)} 个
+
+## 详细文件内容分析
+"""
+        
+        # 添加代码文件内容
+        code_files = project_analysis.get('code_files', [])
+        if code_files:
+            prompt += "\n### 代码文件内容\n"
+            for file_info in code_files[:3]:  # 限制前3个文件
+                prompt += f"\n文件名：{file_info['name']}\n"
+                prompt += f"文件类型：{file_info['extension']}\n"
+                prompt += f"代码内容：\n```\n{file_info['content'][:2000]}...\n```\n"  # 限制内容长度
+        
+        # 添加文档文件内容
+        document_files = project_analysis.get('document_files', [])
+        if document_files:
+            prompt += "\n### 文档文件内容\n"
+            for file_info in document_files[:2]:  # 限制前2个文件
+                prompt += f"\n文件名：{file_info['name']}\n"
+                prompt += f"文件类型：{file_info['extension']}\n"
+                prompt += f"文档内容：\n{file_info['content'][:1000]}...\n"  # 限制内容长度
+        
+        # 添加图片文件信息
+        image_files = project_analysis.get('image_files', [])
+        if image_files:
+            prompt += "\n### 图片文件\n"
+            for file_info in image_files[:5]:  # 限制前5个文件
+                prompt += f"- {file_info['name']} ({file_info.get('metadata', {}).get('width', '未知')}x{file_info.get('metadata', {}).get('height', '未知')})\n"
+        
+        # 添加其他文件信息
+        other_files = project_analysis.get('other_files', [])
+        if other_files:
+            prompt += "\n### 其他文件\n"
+            for file_info in other_files[:3]:  # 限制前3个文件
+                prompt += f"- {file_info['name']}\n"
+        
+        prompt += f"""
+
+## 报告要求
+请按照以下结构生成Markdown格式的实验报告：
+
+1. # 实验报告标题
+2. ## 实验目的
+   - 简述实验的目标和意义
+3. ## 实验环境
+   - 列出使用的开发工具、编程语言、框架等
+4. ## 实验内容
+   - 详细描述实验的主要内容和实现方法
+5. ## 实验步骤
+   - 分步骤描述实验的实施过程
+6. ## 实验结果
+   - 展示实验的输出结果和运行效果
+7. ## 实验分析
+   - 对实验结果进行分析和讨论
+8. ## 实验总结
+   - 总结实验收获和遇到的问题及解决方案
+9. ## 参考文献
+   - 列出参考的资料和文献
+
+## 特别要求
+- 内容详实，逻辑清晰，语言专业
+- 结合具体的代码和文档内容进行分析
+- 报告长度不少于1500字
+- 使用Markdown格式，包含适当的标题、列表、代码块等
+- 如果有代码文件，请分析关键代码片段
+- 如果有文档文件，请结合文档内容进行分析
+
+请根据以上信息生成高质量的实验报告：
+"""
+        
+        return prompt

@@ -1,17 +1,21 @@
 """
 AI API模块
-实现AI对话功能的API端点
+实现AI对话功能和报告生成的API端点
 """
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 from pydantic import BaseModel
 from typing import List, Optional
 from services.ai_service import AIService
+from services.document_service import DocumentService
+import json
+import os
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 ai_service = AIService()
+document_service = DocumentService()
 
 class ChatMessage(BaseModel):
     """聊天消息模型"""
@@ -94,3 +98,83 @@ async def get_ai_status():
             "available": False,
             "message": f"获取状态失败: {str(e)}"
         }
+
+class GenerateReportRequest(BaseModel):
+    """报告生成请求模型"""
+    project_name: str
+    file_paths: List[str]
+    template_id: Optional[str] = None
+    format_type: str = "markdown"
+    custom_prompt: Optional[str] = None
+
+class GenerateReportResponse(BaseModel):
+    """报告生成响应模型"""
+    success: bool
+    report_content: str
+    output_path: Optional[str] = None
+    message: str
+
+@router.post("/generate-report", response_model=GenerateReportResponse)
+async def generate_report(request: GenerateReportRequest):
+    """生成实验报告"""
+    try:
+        # 检查AI服务是否可用
+        if not ai_service.is_available():
+            raise HTTPException(
+                status_code=503, 
+                detail="AI服务不可用，请检查OpenAI API Key配置"
+            )
+        
+        # 检查文件是否存在
+        for file_path in request.file_paths:
+            if not os.path.exists(file_path):
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"文件不存在: {file_path}"
+                )
+        
+        # 分析项目文件内容
+        logger.info(f"开始分析项目文件，共 {len(request.file_paths)} 个文件")
+        project_analysis = await document_service.analyze_project_files(request.file_paths)
+        
+        # 构建项目信息
+        project_info = {
+            "name": request.project_name,
+            "created_at": "2025-01-01",  # 实际项目中应该使用真实时间
+            "file_count": len(request.file_paths)
+        }
+        
+        # 调用AI服务生成报告
+        logger.info("开始调用AI服务生成报告")
+        report_content = await ai_service.generate_report(
+            project_analysis=project_analysis,
+            project_info=project_info,
+            template_id=request.template_id,
+            format_type=request.format_type,
+            custom_prompt=request.custom_prompt
+        )
+        
+        # 保存生成的报告
+        # 使用项目名称作为ID的一部分
+        project_id = request.project_name.replace(" ", "_").lower()
+        output_path = await document_service.save_report(
+            content=report_content,
+            project_id=project_id,
+            format_type=request.format_type
+        )
+        
+        logger.info(f"报告生成成功: {output_path}")
+        
+        return GenerateReportResponse(
+            success=True,
+            report_content=report_content,
+            output_path=output_path,
+            message="报告生成成功"
+        )
+        
+    except HTTPException:
+        # 重新抛出HTTP异常
+        raise
+    except Exception as e:
+        logger.error(f"生成报告失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"生成报告失败: {str(e)}")
