@@ -187,52 +187,34 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useGenerateStore } from '../stores/generateStore'
+import { useUploadStore } from '../stores/uploadStore'
 
 const route = useRoute()
 const router = useRouter()
+const generateStore = useGenerateStore()
+const uploadStore = useUploadStore()
 
-// 响应式数据
-const projectFiles = ref([])
-const isGenerating = ref(false)
-const generationComplete = ref(false)
-const currentStep = ref(0)
-const progressPercentage = ref(0)
-const progressStatus = ref('')
-const progressText = ref('')
-const previewVisible = ref(false)
-const previewMode = ref('rendered')
-const generatedContent = ref('')
-const renderedContent = ref('')
-
-const generateConfig = ref({
-  title: '',
-  format: 'markdown',
-  templateId: '',
-  customPrompt: '',
-  includeOptions: ['toc', 'code', 'images']
-})
-
-const templates = ref([
-  { id: 'default', name: '默认模板' },
-  { id: 'academic', name: '学术论文模板' },
-  { id: 'lab-report', name: '实验报告模板' },
-  { id: 'technical', name: '技术文档模板' }
-])
-
-// 计算属性
-const canGenerate = computed(() => {
-  return projectFiles.value.length > 0 && generateConfig.value.title.trim() !== ''
-})
-
-const fileCategorySummary = computed(() => {
-  const summary = {}
-  projectFiles.value.forEach(file => {
-    const category = file.category || 'others'
-    summary[category] = (summary[category] || 0) + 1
-  })
-  return summary
-})
+// 使用storeToRefs来保持响应性
+const { 
+  projectFiles, 
+  generateConfig, 
+  isGenerating, 
+  generationComplete, 
+  currentStep, 
+  progressPercentage, 
+  progressStatus, 
+  progressText, 
+  previewVisible, 
+  previewMode, 
+  generatedContent, 
+  renderedContent, 
+  templates,
+  canGenerate,
+  fileCategorySummary
+} = storeToRefs(generateStore)
 
 // 生命周期
 onMounted(() => {
@@ -241,18 +223,45 @@ onMounted(() => {
 
 // 方法
 const loadProjectFiles = () => {
-  // 从路由参数获取文件信息
+  // 首先尝试从store获取文件信息
+  if (projectFiles.value.length > 0) {
+    // 如果store中有文件，使用store中的数据
+    if (!generateConfig.value.title) {
+      generateConfig.value.title = `实验报告 - ${new Date().toLocaleDateString()}`
+    }
+    return
+  }
+  
+  // 从路由参数获取文件信息（向后兼容）
   if (route.query.files) {
     try {
-      projectFiles.value = JSON.parse(route.query.files)
+      const files = JSON.parse(route.query.files)
+      generateStore.setProjectFiles(files)
       
       // 根据文件生成默认标题
-      if (projectFiles.value.length > 0) {
+      if (files.length > 0 && !generateConfig.value.title) {
         generateConfig.value.title = `实验报告 - ${new Date().toLocaleDateString()}`
       }
     } catch (error) {
       console.error('解析文件信息失败:', error)
       ElMessage.error('加载项目文件失败')
+    }
+  }
+  
+  // 如果没有文件，尝试从上传store获取
+  if (projectFiles.value.length === 0 && uploadStore.extractedFiles.length > 0) {
+    const files = uploadStore.extractedFiles.map(f => ({
+      id: Date.now() + Math.random(),
+      name: f.name,
+      path: f.path,
+      size: f.size,
+      type: f.type || 'application/octet-stream',
+      category: f.category || 'others'
+    }))
+    generateStore.setProjectFiles(files)
+    
+    if (files.length > 0 && !generateConfig.value.title) {
+      generateConfig.value.title = `实验报告 - ${new Date().toLocaleDateString()}`
     }
   }
   
@@ -288,24 +297,22 @@ const startGeneration = async () => {
     return
   }
 
-  isGenerating.value = true
-  generationComplete.value = false
-  currentStep.value = 0
-  progressPercentage.value = 0
+  generateStore.setGenerating(true)
+  generateStore.setGenerationComplete(false)
+  generateStore.setCurrentStep(0)
+  generateStore.setProgress(0)
 
   try {
     // 步骤1: 分析文件
-    progressText.value = '正在分析上传的文件...'
-    progressPercentage.value = 25
-    currentStep.value = 1
+    generateStore.setProgress(25, '', '正在分析上传的文件...')
+    generateStore.setCurrentStep(1)
 
     // 获取文件路径
     const filePaths = projectFiles.value.map(file => file.path).filter(path => path)
 
     // 步骤2: AI 生成
-    progressText.value = '正在调用 AI 生成报告内容...'
-    progressPercentage.value = 50
-    currentStep.value = 2
+    generateStore.setProgress(50, '', '正在调用 AI 生成报告内容...')
+    generateStore.setCurrentStep(2)
 
     // 调用后端API生成报告
     const formData = new FormData()
@@ -333,29 +340,27 @@ const startGeneration = async () => {
     const data = await response.json()
     
     // 步骤3: 格式转换
-    progressText.value = '正在转换为目标格式...'
-    progressPercentage.value = 90
-    currentStep.value = 3
+    generateStore.setProgress(90, '', '正在转换为目标格式...')
+    generateStore.setCurrentStep(3)
 
     // 步骤4: 完成
-    progressText.value = '报告生成完成！'
-    progressPercentage.value = 100
-    progressStatus.value = 'success'
+    generateStore.setProgress(100, 'success', '报告生成完成！')
 
     // 使用实际生成的内容
-    generatedContent.value = data.report_content || data.project?.output_path || generateMockContent()
-    renderedContent.value = renderContent(generatedContent.value)
+    const content = data.report_content || data.project?.output_path || generateMockContent()
+    generateStore.setGeneratedContent(content)
+    generateStore.setRenderedContent(renderContent(content))
 
     setTimeout(() => {
-      isGenerating.value = false
-      generationComplete.value = true
+      generateStore.setGenerating(false)
+      generateStore.setGenerationComplete(true)
       ElMessage.success('报告生成成功！')
     }, 1000)
 
   } catch (error) {
     console.error('生成报告失败:', error)
-    isGenerating.value = false
-    progressStatus.value = 'exception'
+    generateStore.setGenerating(false)
+    generateStore.setProgress(progressPercentage.value, 'exception')
     ElMessage.error('生成报告失败: ' + error.message)
   }
 }
@@ -422,7 +427,7 @@ const renderContent = (content) => {
 }
 
 const previewReport = () => {
-  previewVisible.value = true
+  generateStore.setPreviewVisible(true)
 }
 
 const downloadReport = () => {

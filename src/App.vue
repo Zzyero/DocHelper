@@ -65,14 +65,22 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUploadStore } from './stores/uploadStore'
+import { useGenerateStore } from './stores/generateStore'
 
 const router = useRouter()
+const uploadStore = useUploadStore()
+const generateStore = useGenerateStore()
 
-onMounted(() => {
+onMounted(async () => {
   // 默认跳转到首页
   if (router.currentRoute.value.path === '/') {
     router.push('/home')
   }
+  
+  // 从后端加载保存的状态
+  await uploadStore.loadFromBackend()
+  await generateStore.loadFromBackend()
 })
 </script>
 

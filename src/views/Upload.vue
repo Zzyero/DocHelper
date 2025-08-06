@@ -168,23 +168,27 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import FileList from '../components/FileList.vue'
+import { storeToRefs } from 'pinia'
+import { useUploadStore } from '../stores/uploadStore'
 
 const router = useRouter()
+const uploadStore = useUploadStore()
 
-// 响应式数据
+// 使用storeToRefs来保持响应性
+const { 
+  uploadedFiles, 
+  extractedFiles, 
+  currentStep, 
+  isExtracting, 
+  activeTab, 
+  hasFiles 
+} = storeToRefs(uploadStore)
+
+// 本地响应式数据
 const isDragOver = ref(false)
-const uploadedFiles = ref([])
 const previewVisible = ref(false)
 const previewFile = ref(null)
 const previewContent = ref('')
-const currentStep = ref(1) // 1: 上传, 2: 解压完成
-const extractedFiles = ref([])
-const isExtracting = ref(false) // 解压状态
-const activeTab = ref('archive') // 默认选中压缩包上传
-
-// 计算属性
-const hasFiles = computed(() => uploadedFiles.value.length > 0)
 
 
 // 文件预览函数
@@ -348,7 +352,7 @@ const addFiles = async (files) => {
   // 只允许上传一个压缩包
   if (uploadedFiles.value.length > 0) {
     ElMessage.warning('已存在压缩包，将替换为新上传的文件');
-    uploadedFiles.value = [];
+    uploadStore.clearUploadedFiles();
   }
   
   const file = validFiles[0];
@@ -361,10 +365,10 @@ const addFiles = async (files) => {
     url: file.path ? `file://${file.path}` : URL.createObjectURL(file),
     originalFile: file // 保存原始文件引用
   };
-  uploadedFiles.value.push(fileObj);
+  uploadStore.addUploadedFile(fileObj);
   
   // 保存上传的文件信息到后端
-  await saveUploadedFiles();
+  await uploadStore.saveToBackend();
   
   // 自动解压
   await extractArchive(fileObj);
@@ -372,7 +376,7 @@ const addFiles = async (files) => {
 
 const extractArchive = async (fileObj) => {
   // 设置解压状态为true
-  isExtracting.value = true;
+  uploadStore.setIsExtracting(true);
   
   try {
     // 需要重新获取原始的File对象
@@ -419,16 +423,16 @@ const extractArchive = async (fileObj) => {
     }
     
     const data = await response.json();
-    extractedFiles.value = data.extracted_files;
-    currentStep.value = 2;
+    uploadStore.setExtractedFiles(data.extracted_files);
+    uploadStore.setCurrentStep(2);
     ElMessage.success(`解压成功，共 ${data.count} 个文件`);
   } catch (error) {
     console.error('解压失败:', error);
     ElMessage.error(`解压失败: ${error.message}`);
-    uploadedFiles.value = []; // 清空无效的压缩包
+    uploadStore.clearUploadedFiles(); // 清空无效的压缩包
   } finally {
     // 无论成功还是失败，都将解压状态设置为false
-    isExtracting.value = false;
+    uploadStore.setIsExtracting(false);
   }
 }
 
@@ -471,10 +475,10 @@ const clearAllFiles = async () => {
       type: 'warning'
     })
     
-    uploadedFiles.value = []
+    uploadStore.clearUploadedFiles()
     
     // 同时清除后端保存的文件信息
-    await saveUploadedFiles()
+    await uploadStore.saveToBackend()
     
     ElMessage.success('已清空所有文件')
   } catch {
@@ -530,12 +534,10 @@ const proceedToGenerate = async () => {
 }
 
 const resetUpload = async () => {
-  uploadedFiles.value = [];
-  extractedFiles.value = [];
-  currentStep.value = 1;
+  uploadStore.resetAll();
   
   // 同时清除后端保存的文件信息
-  await saveUploadedFiles();
+  await uploadStore.saveToBackend();
 }
 
 
