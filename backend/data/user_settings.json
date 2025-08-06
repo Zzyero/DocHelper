@@ -1,0 +1,25 @@
+{
+  "id": "user_settings",
+  "ai_settings": {
+    "apiUrl": "api-inference.modelscope.cn/v1",
+    "apiKey": "ms-23dae62f-34e4-42cb-b443-6912be062d10",
+    "modelName": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+    "maxTokens": 4000,
+    "temperature": 0.7
+  },
+  "doc_settings": {
+    "defaultFormat": "markdown",
+    "outputDir": "",
+    "autoSave": true,
+    "includeToc": true
+  },
+  "app_settings": {
+    "language": "zh-CN",
+    "theme": "light",
+    "checkUpdates": true,
+    "analytics": false
+  },
+  "uploaded_files": [],
+  "created_at": "2025-08-03T10:30:22.102580",
+  "updated_at": "2025-08-03T10:30:41.207978"
+}

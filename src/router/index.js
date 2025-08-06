@@ -5,6 +5,7 @@ import Generate from '../views/Generate.vue'
 import Templates from '../views/Templates.vue'
 import History from '../views/History.vue'
 import Settings from '../views/Settings.vue'
+import AIChat from '../views/AIChat.vue'
 
 const routes = [
   {
@@ -57,6 +58,14 @@ const routes = [
     component: Settings,
     meta: {
       title: '设置'
+    }
+  },
+  {
+    path: '/ai-chat',
+    name: 'AIChat',
+    component: AIChat,
+    meta: {
+      title: 'AI对话'
     }
   }
 ]

@@ -46,6 +46,11 @@
             <el-icon><Setting /></el-icon>
             <span>设置</span>
           </el-menu-item>
+          
+          <el-menu-item index="/ai-chat">
+            <el-icon><ChatDotRound /></el-icon>
+            <span>AI对话</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       

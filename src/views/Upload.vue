@@ -219,6 +219,9 @@ const addFiles = async (files) => {
   };
   uploadedFiles.value.push(fileObj);
   
+  // 保存上传的文件信息到后端
+  await saveUploadedFiles();
+  
   // 自动解压
   await extractArchive(fileObj);
 }
@@ -325,6 +328,10 @@ const clearAllFiles = async () => {
     })
     
     uploadedFiles.value = []
+    
+    // 同时清除后端保存的文件信息
+    await saveUploadedFiles()
+    
     ElMessage.success('已清空所有文件')
   } catch {
     // 用户取消操作
@@ -347,10 +354,13 @@ const proceedToGenerate = () => {
   })
 }
 
-const resetUpload = () => {
+const resetUpload = async () => {
   uploadedFiles.value = [];
   extractedFiles.value = [];
   currentStep.value = 1;
+  
+  // 同时清除后端保存的文件信息
+  await saveUploadedFiles();
 }
 
 
@@ -362,8 +372,52 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
-onMounted(() => {
-  // 页面加载时的初始化操作
+// 保存上传的文件信息到后端
+const saveUploadedFiles = async () => {
+  try {
+    const filesToSave = uploadedFiles.value.map(file => ({
+      id: file.id,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      url: file.url
+    }));
+    
+    const response = await fetch('/api/v1/settings/user-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        uploaded_files: filesToSave
+      })
+    });
+    
+    if (!response.ok) {
+      console.warn('保存上传文件信息失败');
+    }
+  } catch (error) {
+    console.error('保存上传文件信息失败:', error);
+  }
+}
+
+onMounted(async () => {
+  // 页面加载时从后端加载已保存的文件信息
+  try {
+    const response = await fetch('/api/v1/settings/user-settings');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.uploaded_files && data.uploaded_files.length > 0) {
+        uploadedFiles.value = data.uploaded_files.map(file => ({
+          ...file,
+          originalFile: null // 原始文件对象无法序列化，需要重新选择
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('加载上传文件信息失败:', error);
+  }
 })
 </script>
 

@@ -13,8 +13,8 @@ class Config:
         """初始化配置"""
         # OpenAI 配置
         self.OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
-        self.OPENAI_API_BASE: str = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
-        self.OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+        self.OPENAI_API_BASE: str = os.getenv("OPENAI_API_BASE", "https://api-inference.modelscope.cn/v1")
+        self.OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "Qwen/Qwen3-235B-A22B-Thinking-2507")
         
         # 应用配置
         self.APP_NAME: str = os.getenv("APP_NAME", "DocHelper")

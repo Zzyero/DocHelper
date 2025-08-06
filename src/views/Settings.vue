@@ -19,7 +19,7 @@
           <el-form-item label="API 地址">
             <el-input
               v-model="aiSettings.apiUrl"
-              placeholder="https://api.openai.com/v1"
+              placeholder="https://api-inference.modelscope.cn/v1"
               clearable
             >
               <template #prepend>HTTPS://</template>
@@ -50,11 +50,8 @@
               allow-create
               clearable
             >
-              <el-option label="gpt-4" value="gpt-4" />
-              <el-option label="gpt-4-turbo" value="gpt-4-turbo" />
-              <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo" />
-              <el-option label="claude-3-opus" value="claude-3-opus" />
-              <el-option label="claude-3-sonnet" value="claude-3-sonnet" />
+              <el-option label="Qwen/Qwen3-235B-A22B-Thinking-2507" value="Qwen/Qwen3-235B-A22B-Thinking-2507" />
+              <el-option label="Qwen/Qwen3-Coder-480B-A35B-Instruct" value="Qwen/Qwen3-Coder-480B-A35B-Instruct" />
             </el-select>
             <div class="form-help">
               选择要使用的语言模型
@@ -255,9 +252,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const testing = ref(false)
 
 const aiSettings = ref({
-  apiUrl: 'api.openai.com/v1',
+  apiUrl: 'api-inference.modelscope.cn/v1',
   apiKey: '',
-  modelName: 'gpt-4',
+  modelName: 'Qwen/Qwen3-235B-A22B-Thinking-2507',
   maxTokens: 4000,
   temperature: 0.7
 })
@@ -282,21 +279,27 @@ onMounted(() => {
 })
 
 // 方法
-const loadSettings = () => {
-  // 从本地存储加载设置
-  const savedAiSettings = localStorage.getItem('aiSettings')
-  if (savedAiSettings) {
-    aiSettings.value = { ...aiSettings.value, ...JSON.parse(savedAiSettings) }
-  }
-
-  const savedDocSettings = localStorage.getItem('docSettings')
-  if (savedDocSettings) {
-    docSettings.value = { ...docSettings.value, ...JSON.parse(savedDocSettings) }
-  }
-
-  const savedAppSettings = localStorage.getItem('appSettings')
-  if (savedAppSettings) {
-    appSettings.value = { ...appSettings.value, ...JSON.parse(savedAppSettings) }
+const loadSettings = async () => {
+  try {
+    // 从后端API加载设置
+    const response = await fetch('/api/v1/settings/user-settings')
+    if (response.ok) {
+      const data = await response.json()
+      if (data.ai_settings) {
+        aiSettings.value = { ...aiSettings.value, ...data.ai_settings }
+      }
+      if (data.doc_settings) {
+        docSettings.value = { ...docSettings.value, ...data.doc_settings }
+      }
+      if (data.app_settings) {
+        appSettings.value = { ...appSettings.value, ...data.app_settings }
+      }
+    } else {
+      console.warn('获取设置失败，使用默认设置')
+    }
+  } catch (error) {
+    console.error('加载设置失败:', error)
+    ElMessage.error('加载设置失败')
   }
 
   // 设置默认输出目录
@@ -334,19 +337,73 @@ const testConnection = async () => {
   }
 }
 
-const saveAiSettings = () => {
-  localStorage.setItem('aiSettings', JSON.stringify(aiSettings.value))
-  ElMessage.success('AI 模型配置已保存')
+const saveAiSettings = async () => {
+  try {
+    const response = await fetch('/api/v1/settings/user-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ai_settings: aiSettings.value
+      })
+    })
+    
+    if (response.ok) {
+      ElMessage.success('AI 模型配置已保存')
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.error('保存AI设置失败:', error)
+    ElMessage.error('保存失败')
+  }
 }
 
-const saveDocSettings = () => {
-  localStorage.setItem('docSettings', JSON.stringify(docSettings.value))
-  ElMessage.success('文档生成设置已保存')
+const saveDocSettings = async () => {
+  try {
+    const response = await fetch('/api/v1/settings/user-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        doc_settings: docSettings.value
+      })
+    })
+    
+    if (response.ok) {
+      ElMessage.success('文档生成设置已保存')
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.error('保存文档设置失败:', error)
+    ElMessage.error('保存失败')
+  }
 }
 
-const saveAppSettings = () => {
-  localStorage.setItem('appSettings', JSON.stringify(appSettings.value))
-  ElMessage.success('应用程序设置已保存')
+const saveAppSettings = async () => {
+  try {
+    const response = await fetch('/api/v1/settings/user-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        app_settings: appSettings.value
+      })
+    })
+    
+    if (response.ok) {
+      ElMessage.success('应用程序设置已保存')
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.error('保存应用设置失败:', error)
+    ElMessage.error('保存失败')
+  }
 }
 
 const selectOutputDir = async () => {
@@ -371,16 +428,21 @@ const resetSettings = async () => {
       type: 'warning'
     })
 
-    localStorage.removeItem('aiSettings')
-    localStorage.removeItem('docSettings')
-    localStorage.removeItem('appSettings')
+    // 调用后端API重置设置
+    const response = await fetch('/api/v1/settings/user-settings', {
+      method: 'DELETE'
+    })
     
-    // 重新加载默认设置
-    loadSettings()
-    
-    ElMessage.success('所有设置已重置')
-  } catch {
-    // 用户取消操作
+    if (response.ok) {
+      // 重新加载默认设置
+      loadSettings()
+      ElMessage.success('所有设置已重置')
+    } else {
+      ElMessage.error('重置设置失败')
+    }
+  } catch (error) {
+    console.error('重置设置失败:', error)
+    ElMessage.error('重置设置失败')
   }
 }
 
