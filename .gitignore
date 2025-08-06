@@ -1,2 +1,50 @@
 # 忽略 Node.js 依赖
 node_modules/
+
+# 忽略上传的文件和生成的输出
+backend/uploads/
+backend/outputs/
+uploads/
+outputs/
+data/
+backend/data/
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db
+
+# 忽略日志文件
+*.log
+logs/
+
+# 忽略环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 忽略临时文件
+*.tmp
+*.temp
+
+# 忽略编译输出
+dist/
+build/
+*.exe
+*.dll
+*.so
+
+# 忽略编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 忽略测试文件
+coverage/
+*.test.js
+*.spec.js
+
+# 忽略包文件
+*.zip
+*.tar.gz
+*.rar
