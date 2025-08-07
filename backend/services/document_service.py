@@ -6,8 +6,9 @@
 import logging
 import os
 import json
+import subprocess
 from typing import Optional, Dict, List
-from utils.config import Config
+from ..utils.config import Config
 import PyPDF2
 import docx
 from PIL import Image
@@ -199,25 +200,66 @@ class DocumentService:
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
             
-            # 根据格式类型确定文件扩展名
-            extension_map = {
-                "markdown": "md",
-                "html": "html",
-                "pdf": "pdf",
-                "docx": "docx"
-            }
-            extension = extension_map.get(format_type, "md")
+            # 如果需要生成word格式，先生成markdown再转换
+            if format_type == "docx":
+                # 先保存为markdown格式
+                md_filename = f"report_{project_id}.md"
+                md_file_path = os.path.join(output_dir, md_filename)
+                
+                with open(md_file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                
+                # 使用pandoc转换为word格式
+                docx_filename = f"report_{project_id}.docx"
+                docx_file_path = os.path.join(output_dir, docx_filename)
+                
+                try:
+                    # 调用pandoc进行转换
+                    result = subprocess.run([
+                        './pandoc.exe', 
+                        md_file_path, 
+                        '-o', 
+                        docx_file_path
+                    ], capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode != 0:
+                        logger.error(f"pandoc转换失败: {result.stderr}")
+                        raise Exception(f"pandoc转换失败: {result.stderr}")
+                    
+                    logger.info(f"报告转换成功: {md_file_path} -> {docx_file_path}")
+                    return docx_file_path
+                    
+                except subprocess.TimeoutExpired:
+                    logger.error("pandoc转换超时")
+                    raise Exception("pandoc转换超时")
+                except FileNotFoundError:
+                    logger.error("pandoc.exe未找到，请确保pandoc已正确安装")
+                    raise Exception("pandoc未找到，请确保已正确安装")
+                except Exception as e:
+                    logger.error(f"pandoc转换失败: {str(e)}")
+                    raise Exception(f"pandoc转换失败: {str(e)}")
             
-            # 生成文件名
-            filename = f"report_{project_id}.{extension}"
-            file_path = os.path.join(output_dir, filename)
-            
-            # 保存文件
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(content)
-            
-            logger.info(f"报告保存成功: {file_path}")
-            return file_path
+            else:
+                # 其他格式直接保存
+                extension_map = {
+                    "markdown": "md",
+                    "html": "html",
+                    "pdf": "pdf",
+                    "docx": "docx"
+                }
+                extension = extension_map.get(format_type, "md")
+                
+                # 生成文件名
+                filename = f"report_{project_id}.{extension}"
+                file_path = os.path.join(output_dir, filename)
+                
+                # 保存文件
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                
+                logger.info(f"报告保存成功: {file_path}")
+                return file_path
+                
         except Exception as e:
             logger.error(f"保存报告失败: {str(e)}")
             raise Exception(f"保存报告失败: {str(e)}")

@@ -493,10 +493,9 @@ const proceedToGenerate = async () => {
     projectData.append('name', '实验报告项目');
     projectData.append('description', '通过文件上传自动生成的项目');
     
-    // 添加文件路径
-    extractedFiles.value.forEach(file => {
-      projectData.append('file_paths', file.path);
-    });
+    // 添加文件路径（作为JSON字符串）
+    const filePaths = extractedFiles.value.map(file => file.path);
+    projectData.append('file_paths', JSON.stringify(filePaths));
 
     const response = await fetch('/api/v1/projects', {
       method: 'POST',

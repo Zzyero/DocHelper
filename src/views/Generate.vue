@@ -46,8 +46,9 @@
         <el-form-item label="输出格式">
           <el-radio-group v-model="generateConfig.format">
             <el-radio label="markdown">Markdown</el-radio>
-            <el-radio label="latex">LaTeX</el-radio>
-            <el-radio label="word">Word</el-radio>
+            <el-radio label="docx">Word</el-radio>
+            <el-radio label="html">HTML</el-radio>
+            <el-radio label="pdf">PDF</el-radio>
           </el-radio-group>
         </el-form-item>
 

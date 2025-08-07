@@ -7,8 +7,8 @@ import logging
 from fastapi import APIRouter, HTTPException, Form
 from pydantic import BaseModel
 from typing import List, Optional
-from services.ai_service import AIService
-from services.document_service import DocumentService
+from ..services.ai_service import AIService
+from ..services.document_service import DocumentService
 import json
 import os
 

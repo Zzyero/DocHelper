@@ -15,13 +15,13 @@ from typing import List, Optional
 from datetime import datetime
 import logging
 
-from api.routes import router as api_router
-from services.ai_service import AIService
-from services.document_service import DocumentService
-from services.template_service import TemplateService
-from models.project import Project, ProjectStatus
-from utils.file_utils import FileUtils
-from utils.config import Config
+import backend.api.routes as api_routes
+from backend.services.ai_service import AIService
+from backend.services.document_service import DocumentService
+from backend.services.template_service import TemplateService
+from backend.models.project import Project, ProjectStatus
+from backend.utils.file_utils import FileUtils
+from backend.utils.config import Config
 
 # 配置日志
 logging.basicConfig(
@@ -52,7 +52,7 @@ if not os.path.exists("static"):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 包含 API 路由
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_routes.router, prefix="/api/v1")
 
 # 全局变量
 config = Config()
@@ -65,7 +65,7 @@ file_utils = FileUtils()
 async def startup_event():
     """应用启动时的初始化操作"""
     logger.info("DocHelper 后端服务启动中...")
-    
+
     # 创建必要的目录
     directories = [
         "uploads",
@@ -74,30 +74,30 @@ async def startup_event():
         "temp",
         "static"
     ]
-    
+
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
             logger.info(f"创建目录: {directory}")
-    
+
     # 初始化模板库
     await template_service.initialize_templates()
-    
+
     logger.info("DocHelper 后端服务启动完成")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """应用关闭时的清理操作"""
     logger.info("DocHelper 后端服务关闭中...")
-    
+
     # 清理临时文件
     await file_utils.cleanup_temp_files()
-    
+
     logger.info("DocHelper 后端服务已关闭")
 
 @app.get("/")
 async def root():
-    """根路径，返回服务状态"""
+    """根路由，返回服务状态"""
     return {
         "message": "DocHelper API 服务运行中",
         "version": "1.0.0",
@@ -123,23 +123,29 @@ async def health_check():
 async def create_project(
     name: str = Form(...),
     description: str = Form(""),
-    file_paths: List[str] = Form(...)
+    file_paths: str = Form(...)
 ):
     """创建新项目（基于已存在的文件路径）"""
     try:
+        # 解析文件路径列表
+        try:
+            file_paths_list = json.loads(file_paths)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="文件路径格式错误")
+
         # 创建项目实例
         project = Project(
             name=name,
             description=description,
             status=ProjectStatus.CREATED
         )
-        
+
         # 验证文件路径并构建文件信息
         uploaded_files = []
-        for file_path in file_paths:
+        for file_path in file_paths_list:
             if not os.path.exists(file_path):
                 raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}")
-            
+
             # 获取文件信息
             file_stat = os.stat(file_path)
             uploaded_files.append({
@@ -148,20 +154,20 @@ async def create_project(
                 "size": file_stat.st_size,
                 "type": "application/octet-stream"  # 实际应用中应该根据文件扩展名确定类型
             })
-        
+
         project.files = uploaded_files
-        
+
         # 保存项目信息
         await project.save()
-        
+
         logger.info(f"创建项目成功: {project.name} (ID: {project.id})")
-        
+
         return {
             "success": True,
             "project": project.to_dict(),
             "message": "项目创建成功"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -189,7 +195,7 @@ async def get_project(project_id: str):
         project = await Project.get_by_id(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="项目不存在")
-        
+
         return {
             "success": True,
             "project": project.to_dict()
@@ -214,25 +220,25 @@ async def generate_report(
         project = await Project.get_by_id(project_id)
         if not project:
             raise HTTPException(status_code=404, detail="项目不存在")
-        
+
         # 检查项目文件
         if not project.files:
             raise HTTPException(status_code=400, detail="项目没有文件")
-        
+
         # 更新项目状态
         project.status = ProjectStatus.GENERATING
         project.updated_at = datetime.now()
         await project.save()
-        
+
         # 提取文件路径
         file_paths = [file_info["path"] for file_info in project.files if os.path.exists(file_info["path"])]
         if not file_paths:
             raise HTTPException(status_code=400, detail="项目文件不存在")
-        
+
         # 分析项目文件内容
         logger.info(f"开始分析项目文件，共 {len(file_paths)} 个文件")
         project_analysis = await document_service.analyze_project_files(file_paths)
-        
+
         # 构建项目信息
         project_info = {
             "name": project.name,
@@ -240,7 +246,7 @@ async def generate_report(
             "created_at": project.created_at.isoformat() if project.created_at else datetime.now().isoformat(),
             "file_count": len(project.files)
         }
-        
+
         # 调用 AI 服务生成报告
         report_content = await ai_service.generate_report(
             project_analysis=project_analysis,
@@ -249,22 +255,22 @@ async def generate_report(
             format_type=format_type,
             custom_prompt=custom_prompt
         )
-        
+
         # 保存生成的报告
         output_path = await document_service.save_report(
             content=report_content,
             project_id=project_id,
             format_type=format_type
         )
-        
+
         # 更新项目状态和结果
         project.status = ProjectStatus.COMPLETED
         project.output_path = output_path
         project.updated_at = datetime.now()
         await project.save()
-        
+
         logger.info(f"报告生成成功: {project.name} -> {output_path}")
-        
+
         return {
             "success": True,
             "project": project.to_dict(),
@@ -272,12 +278,12 @@ async def generate_report(
             "report_content": report_content,
             "message": "报告生成成功"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"生成报告失败: {str(e)}")
-        
+
         # 更新项目状态为失败
         try:
             project = await Project.get_by_id(project_id)
@@ -287,7 +293,7 @@ async def generate_report(
                 await project.save()
         except:
             pass
-        
+
         raise HTTPException(status_code=500, detail=f"生成报告失败: {str(e)}")
 
 # 文档转换接口
@@ -304,13 +310,13 @@ async def convert_document(
             output_format=output_format,
             template_path=template_path
         )
-        
+
         return {
             "success": True,
             "output_path": output_path,
             "message": "文档转换成功"
         }
-        
+
     except Exception as e:
         logger.error(f"文档转换失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"文档转换失败: {str(e)}")
@@ -342,13 +348,13 @@ async def upload_template(
             description=description,
             file=file
         )
-        
+
         return {
             "success": True,
             "template": template_info,
             "message": "模板上传成功"
         }
-        
+
     except Exception as e:
         logger.error(f"上传模板失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"上传模板失败: {str(e)}")
@@ -361,12 +367,12 @@ async def download_file(file_path: str):
         full_path = os.path.join("outputs", file_path)
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail="文件不存在")
-        
+
         return FileResponse(
             path=full_path,
             filename=os.path.basename(full_path)
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:

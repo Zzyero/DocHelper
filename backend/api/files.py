@@ -6,7 +6,7 @@
 import logging
 import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from utils.file_utils import FileUtils
+from ..utils.file_utils import FileUtils
 from typing import List
 from datetime import datetime
 

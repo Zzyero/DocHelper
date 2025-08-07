@@ -7,7 +7,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, List, Optional
-from models.user_settings import UserSettings
+from ..models.user_settings import UserSettings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

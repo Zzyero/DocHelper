@@ -6,8 +6,8 @@ AI 服务模块
 import logging
 from typing import Optional, Dict
 import openai
-from utils.config import Config
-from models.user_settings import UserSettings
+from ..utils.config import Config
+from ..models.user_settings import UserSettings
 
 logger = logging.getLogger(__name__)
 
